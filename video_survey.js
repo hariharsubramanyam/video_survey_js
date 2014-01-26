@@ -14,8 +14,9 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
 	this.surveyVideos = surveyVideos;
 
 	// the current survey video
-	var currentSurveyVideo;
+	var currentSurveyVideoIndex = 0;
 
+	// Randomly permutes the SurveyVideos 
 	this.shuffleVideoSurveys = function(){
 		for(var i = 0; i < this.surveyVideos.length; i++){
 			var tmp = this.surveyVideos[i];
@@ -24,27 +25,21 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
 			this.surveyVideos[swapIndex] = tmp;
 		}
 	};
+
+	this.displayNextVideo = function(){
+		var currentSurveyVideo = this.surveyVideos[currentSurveyVideoIndex];
+		confirm(currentSurveyVideo.preVideoPrompt);
+		this.loadVideo(currentSurveyVideo.videoURL);
+		this.videoElement.play();
+		currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%this.surveyVideos.length;
+	};
+
 	this.loadVideo = function(url){
 		var sources = this.videoElement.getElementsByTagName("source");
 		sources[0].src = url;
 		this.videoElement.load();
 		return url;
 	};
-	this.nextVideo = function(){
-		var firstElement = this.videoURLs.shift();
-		this.videoURLs.push(firstElement);
-		return firstElement;
-	};
-	this.loadNextVideo = function(){
-		return this.loadVideo(this.nextVideo());
-	};
-	this.playVideo = function(){
-		this.videoElement.play();
-	};
-	this.pauseVideo = function(){
-		this.videoElement.pause();
-	};
-
 	this.shuffleVideoSurveys();
 }
 
@@ -60,10 +55,12 @@ function QA(question, responses){
 /*
  * videoURL = url of the video to play
  * QAs = the QAs associated with this video
+ * preVideoPrompt = the prompt text that will be displayed before the video begins (ex. "You will see a video of a bunch of colors and then asked a set of questions afterwards")
  * timedQA = the question to show while the video is playing (and should keep track of the time taken to answer the question) - if there isn't any timed question, then pass in null
  */
-function SurveyVideo(videoURL, QAs, timedQA){
+function SurveyVideo(videoURL, QAs, preVideoPrompt, timedQA){
 	this.videoURL = videoURL;
+	this.preVideoPrompt = preVideoPrompt;
 	this.QAs = QAs;
 	this.timedQA = timedQA;
 }
