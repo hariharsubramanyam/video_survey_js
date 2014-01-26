@@ -6,18 +6,20 @@
  *	[QA1, QA2, ...]
  *	where each QA takes the form
  *	{
- *		questionTitle:"What should I put here?"
+ *		question:"What should I put here?"
  *		responses:["FirstResponse", "SecondResponse", "ThirdResponse", ...]
  *		videoURL:"the/video/url/this/question/is/associated/with"
  *	} 
  */
-function VideoQuestion(videoElement, questionDiv, videoURLs, QAs){
+function VideoSurvey(videoElement, questionDiv, videoURLs, QAs){
 	this.videoElement = videoElement;
 	this.QAs = QAs;
 	this.videoURLs = videoURLs;
 	this.loadVideo = function(url){
 		var sources = this.videoElement.getElementsByTagName("source");
 		sources[0].src = url;
+		this.videoElement.load();
+		return url;
 	};
 	this.nextVideo = function(){
 		var firstElement = this.videoURLs.shift();
@@ -25,6 +27,9 @@ function VideoQuestion(videoElement, questionDiv, videoURLs, QAs){
 		return firstElement;
 	};
 	this.loadNextVideo = function(){
-		this.loadVideo(this.nextVideo());
+		return this.loadVideo(this.nextVideo());
+	};
+	this.playVideo = function(){
+		this.videoElement.play();
 	};
 }

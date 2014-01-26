@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<body>	
+		<video id="myVidPlayer" style="{width:100; height:100}">
+			<source src="assets/Braking.mp4"></source>
+		</video>
+		<div id="myDiv"></div>
+		<script type="text/javascript" src="video_survey.js"></script>
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script>
+			$(document).ready(function(){
+				var video = document.getElementById("myVidPlayer");
+				var div = document.getElementById("myDiv");
+				var videoURLs = ["assets/Backing_Up.mp4",
+				"assets/Braking.mp4",
+				"assets/Default_forward.mp4",
+				"assets/Default_forward_checker_pattern.mp4",
+				"assets/Front_Obstacle_Sound.mp4"];
+				var QAs = [
+				{
+					question:"What is your favorite color?",
+					responses:["Red", "Green", "Blue"],
+					videoURL:"assets/Braking.mp4"
+				},
+				{
+					question:"Where were you born?",
+					responses:["Leningrad", "Other"],
+					videoURL:"assets/Default_forward.mp4"
+				}
+				];
+				var videoSurvey = new VideoSurvey(video, div, videoURLs, QAs);
+				videoSurvey.playVideo();	
+			});
+		</script>
+	</body>
+</html>
