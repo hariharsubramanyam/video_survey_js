@@ -1,39 +1,39 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Sample Video Survey</title>
-		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-	</head>
-	<body>	
-		<div class="container">
-			<div class="row">
-				<button id="btnNext" class="btn btn-success col-md-offset-3">Next!</button>
-			</div>
-			<div class="row">
-				<video id="myVidPlayer" style="{width:100; height:100}">
-					<source src="assets/Braking.mp4"></source>
-				</video>
-				<div id="myDiv"></div>
-			</div>
-		</div>
-		<script type="text/javascript" src="video_survey.js"></script>
-		<script src="http://code.jquery.com/jquery-1.10.1.min.js" type="text/javascript"></script>
-		<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
-		<script>
-			var video;
-			var div;
-			var surveyManager;
-			$(document).ready(function(){
-				video = document.getElementById("myVidPlayer");
-				div = document.getElementById("myDiv");
-				var surVids = [];
-				surVids.push(new SurveyVideo("assets/Braking.mp4", [], "Braking", "Are you ready to play?", new QA("What's your favorite color?", ["Red", "Blue"])));
-				surVids.push(new SurveyVideo("assets/Backing_Up.mp4", [], "Backing Up", "Play second video?", null));
-				surveyManager = new SurveyManager(video, div, surVids);
-				$("#btnNext").click(function(){	
-					surveyManager.displayNextVideo();
-				});
-			});
-		</script>
-	</body>
+  <head>
+    <title>Sample Video Survey</title>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>	
+    <div class="container">
+      <div class="row">
+        <button id="btnNext" class="btn btn-success col-md-offset-3">Next!</button>
+      </div>
+      <div class="row">
+        <video id="myVidPlayer" style="{width:100; height:100}">
+          <source src="assets/Braking.mp4"></source>
+        </video>
+        <div id="myDiv"></div>
+      </div>
+    </div>
+    <script type="text/javascript" src="video_survey.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+    <script>
+      var video;
+      var div;
+      var surveyManager;
+      $(document).ready(function(){
+        video = document.getElementById("myVidPlayer");
+        div = document.getElementById("myDiv");
+        var surVids = [];
+        surVids.push(new SurveyVideo("assets/Braking.mp4", [], "Braking", "Are you ready to play?", new QA("What's your favorite color?", ["Red", "Blue"])));
+        surVids.push(new SurveyVideo("assets/Backing_Up.mp4", [], "Backing Up", "Play second video?", null));
+        surveyManager = new SurveyManager(video, div, surVids);
+        $("#btnNext").click(function(){	
+          surveyManager.displayNextVideo();
+        });
+      });
+    </script>
+  </body>
 </html>
