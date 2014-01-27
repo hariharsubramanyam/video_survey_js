@@ -36,9 +36,12 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
 		var thisObject = this;
 		$("#my_modal_button").unbind("click");
 		$("#my_modal_button").click(function(){
-			thisObject.loadVideo(currentSurveyVideo.videoURL);
+			var start_time = new Date();
+			thisObject.loadVideo(currentSurveyVideo.videoURL);	
 			thisObject.videoElement.play();
-			console.log(currentSurveyVideoIndex);
+			if(currentSurveyVideo.timedQA){
+				thisObject.questionDiv.innerHTML = '<div class="container">' + '<div class="row" id="my_question_row">' + "<p>" + currentSurveyVideo.timedQA.question + "</p>" + '</div>' + '<div class="row" id="my_response_row">'+  '</div>'+ '</div>';
+			}
 			currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
 		});
 	};
