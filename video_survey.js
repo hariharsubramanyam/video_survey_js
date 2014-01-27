@@ -9,7 +9,7 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
 
   // The <div> which will contain the questions and the responses
   this.questionDiv = questionDiv;
-  this.questionDiv.innerHTML = '<div class="container">' + '<div class="row"><h3>Question</h3></div>' +'<div class="row">' + "<p id='my_question_text'>" +  "</p>" + '</div>' + '<div class="row" id="my_response_row">'+  '</div>'+ '</div>';
+  this.questionDiv.innerHTML = '<div class="container">' + '<div class="row"><h3>Question</h3></div>' +'<div class="row">' + "<p id='my_question_text'>" +  "</p>" + '</div>' + '<div class="row" id="my_response_row">'+  '</div>'+ '<div id="my_toast">' + '</div>' + '</div>';
 
   // The list of SurveyVideos	
   this.surveyVideos = surveyVideos;
@@ -42,6 +42,12 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
       thisObject.videoElement.play();
       if(currentSurveyVideo.timedQA){
         thisObject.putQuestion(currentSurveyVideo.timedQA);
+        $(".my_button_response_class").unbind('click');
+        $(".my_button_response_class").click(function(){
+          console.log(new Date() - start_time);
+          $('.my_button_response_class').prop('disabled', true);
+          thisObject.setToast(true, "Your response has been recorded");
+        });
       }
       currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
     });
@@ -49,6 +55,18 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
 
   this.fillQuestionDiv = function(text){
     this.putQuestion(text, []);
+  };
+
+  this.setToast = function(isOn, text){
+    if(isOn){
+      $("#my_toast").addClass("alert");
+      $("#my_toast").addClass("alert-success");
+      $("#my_toast").html(text);
+    }else{
+      $("#my_toast").removeClass("alert");
+      $("#my_toast").removeClass("alert-success");
+      $("#my_toast").html("");
+    }
   };
 
   this.putQuestion = function(qa){
