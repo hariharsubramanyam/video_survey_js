@@ -4,62 +4,77 @@
  * surveyVideos = list of SurveyVideos which constitute this survey
  */
 function SurveyManager(videoElement, questionDiv, surveyVideos){
-	// The <video> element
-	this.videoElement = videoElement;
+  // The <video> element
+  this.videoElement = videoElement;
 
-	// The <div> which will contain the questions and the responses
-	this.questionDiv = questionDiv;
+  // The <div> which will contain the questions and the responses
+  this.questionDiv = questionDiv;
+  this.questionDiv.innerHTML = '<div class="container">' + '<div class="row"><h3>Question</h3></div>' +'<div class="row">' + "<p id='my_question_text'>" +  "</p>" + '</div>' + '<div class="row" id="my_response_row">'+  '</div>'+ '</div>';
 
-	// The list of SurveyVideos	
-	this.surveyVideos = surveyVideos;
+  // The list of SurveyVideos	
+  this.surveyVideos = surveyVideos;
 
-	// the current survey video
-	var currentSurveyVideoIndex = 0;
+  // the current survey video
+  var currentSurveyVideoIndex = 0;
 
-	// Randomly permutes the SurveyVideos 
-	this.shuffleVideoSurveys = function(){
-		for(var i = 0; i < this.surveyVideos.length; i++){
-			var tmp = this.surveyVideos[i];
-			var swapIndex = Math.floor(Math.random()*this.surveyVideos.length);
-			this.surveyVideos[i] = this.surveyVideos[swapIndex];
-			this.surveyVideos[swapIndex] = tmp;
-		}
-	};
+  // Randomly permutes the SurveyVideos 
+  this.shuffleVideoSurveys = function(){
+    for(var i = 0; i < this.surveyVideos.length; i++){
+      var tmp = this.surveyVideos[i];
+      var swapIndex = Math.floor(Math.random()*this.surveyVideos.length);
+      this.surveyVideos[i] = this.surveyVideos[swapIndex];
+      this.surveyVideos[swapIndex] = tmp;
+    }
+  };
 
-	// Displays the next video
-	this.displayNextVideo = function(){
-		this.videoElement.pause();
-		var currentSurveyVideo = this.surveyVideos[currentSurveyVideoIndex];
-		$("#my_modal_title").text(currentSurveyVideo.videoTitle);
-		$("#my_modal_body").text(currentSurveyVideo.preVideoPrompt);
-		$("#my_modal").modal();
-		var thisObject = this;
-		$("#my_modal_button").unbind("click");
-		$("#my_modal_button").click(function(){
-			var start_time = new Date();
-			thisObject.loadVideo(currentSurveyVideo.videoURL);	
-			thisObject.videoElement.play();
-			if(currentSurveyVideo.timedQA){
-				thisObject.questionDiv.innerHTML = '<div class="container">' + '<div class="row" id="my_question_row">' + "<p>" + currentSurveyVideo.timedQA.question + "</p>" + '</div>' + '<div class="row" id="my_response_row">'+  '</div>'+ '</div>';
-			}
-			currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
-		});
-	};
+  // Displays the next video
+  this.displayNextVideo = function(){
+    this.videoElement.pause();
+    var currentSurveyVideo = this.surveyVideos[currentSurveyVideoIndex];
+    $("#my_modal_title").text(currentSurveyVideo.videoTitle);
+    $("#my_modal_body").text(currentSurveyVideo.preVideoPrompt);
+    $("#my_modal").modal();
+    var thisObject = this;
+    $("#my_modal_button").unbind("click");
+    $("#my_modal_button").click(function(){
+      var start_time = new Date();
+      thisObject.loadVideo(currentSurveyVideo.videoURL);	
+      thisObject.videoElement.play();
+      if(currentSurveyVideo.timedQA){
+        thisObject.putQuestion(currentSurveyVideo.timedQA);
+      }
+      currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
+    });
+  };
 
-	// Load the video for the given URL
-	this.loadVideo = function(url){
-		var sources = this.videoElement.getElementsByTagName("source");
-		sources[0].src = url;
-		this.videoElement.load();
-		return url;
-	};
+  this.fillQuestionDiv = function(text){
+    this.putQuestion(text, []);
+  };
 
-	this.getBootstrapModalHTML = function(){
-		return '<div class="modal fade" id="my_modal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title" id="my_modal_title">Modal title</h4></div><div class="modal-body"><p id="my_modal_body">One fine body&hellip;</p></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal" id="my_modal_button">OK</button></div></div><!-- /.modal-content --></div><!-- /.modal-dialog --></div><!-- /.modal -->';
-	};
+  this.putQuestion = function(qa){
+    $("#my_question_text").text(qa.question);
+    $("#my_response_row").empty();
+    var responseHTML = "";
+    for(var i = 0; i < qa.responses.length; i++){
+      responseHTML += "<button class='btn btn-primary my_button_response_class'>" + qa.responses[i]  + "</button>";
+    }
+    $("#my_response_row").html(responseHTML);
+  };
 
-	$('body').append(this.getBootstrapModalHTML());
-	this.shuffleVideoSurveys();
+  // Load the video for the given URL
+  this.loadVideo = function(url){
+    var sources = this.videoElement.getElementsByTagName("source");
+    sources[0].src = url;
+    this.videoElement.load();
+    return url;
+  };
+
+  this.getBootstrapModalHTML = function(){
+    return '<div class="modal fade" id="my_modal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title" id="my_modal_title">Modal title</h4></div><div class="modal-body"><p id="my_modal_body">One fine body&hellip;</p></div><div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal" id="my_modal_button">OK</button></div></div><!-- /.modal-content --></div><!-- /.modal-dialog --></div><!-- /.modal -->';
+  };
+
+  $('body').append(this.getBootstrapModalHTML());
+  this.shuffleVideoSurveys();
 }
 
 /*
@@ -67,8 +82,8 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
  * responses = the possible responses to the question (ex. ["Red", "Blue", "Green"])
  */
 function QA(question, responses){
-	this.question = question;
-	this.responses = responses;
+  this.question = question;
+  this.responses = responses;
 }
 
 /*
@@ -78,9 +93,9 @@ function QA(question, responses){
  * timedQA = the question to show while the video is playing (and should keep track of the time taken to answer the question) - if there isn't any timed question, then pass in null
  */
 function SurveyVideo(videoURL, QAs, videoTitle, preVideoPrompt, timedQA){
-	this.videoTitle = videoTitle;
-	this.videoURL = videoURL;
-	this.preVideoPrompt = preVideoPrompt;
-	this.QAs = QAs;
-	this.timedQA = timedQA;
+  this.videoTitle = videoTitle;
+  this.videoURL = videoURL;
+  this.preVideoPrompt = preVideoPrompt;
+  this.QAs = QAs;
+  this.timedQA = timedQA;
 }
