@@ -26,14 +26,13 @@
 			$(document).ready(function(){
 				video = document.getElementById("myVidPlayer");
 				div = document.getElementById("myDiv");
-				var surVid1 = new SurveyVideo("assets/Braking.mp4", [], "Are you ready to play?", null);
-				var surVid2 = new SurveyVideo("assets/Backing_Up.mp4", [], "Play second video?", null);
-				
-				surveyManager = new SurveyManager(video, div, [surVid1, surVid2]);
+				var surVids = [];
+				surVids.push(new SurveyVideo("assets/Braking.mp4", [], "Braking", "Are you ready to play?", null));
+				surVids.push(new SurveyVideo("assets/Backing_Up.mp4", [], "Backing Up", "Play second video?", null));
+				surveyManager = new SurveyManager(video, div, surVids);
 				$("#btnNext").click(function(){	
 					surveyManager.displayNextVideo();
 				});
-
 			});
 		</script>
 	</body>
