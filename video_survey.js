@@ -14,6 +14,7 @@ function SurveyManager(survey){
   // We'll be accumulating the survey result as the user works through the survey
   this.surveyResult = new SurveyResult();
 
+
   // The list of SurveyVideos	
   this.surveyVideos = [];
   for(var i = 0; i < survey["surveyVideos"].length; i++){
@@ -23,6 +24,39 @@ function SurveyManager(survey){
   // the current survey video
   var currentSurveyVideoIndex = 0;
 
+  // the questions to display
+  var questionQueue = [];
+  var canDisplayQuestion = true;
+
+  this.displayQuestion = function(){
+    if(questionQueue.length > 0 && canDisplayQuestion){
+      canDisplayQuestion = false;
+      var qa = questionQueue.shift();
+      $("#my_question_text").text(qa.question);
+      $("#my_response_row").empty();
+      var responseHTML = "";
+      for(var i = 0; i < qa.responses.length; i++){
+        responseHTML += "<button class='btn btn-primary my_button_response_class'>" + qa.responses[i]  + "</button>";
+      }
+      $("#my_response_row").html(responseHTML);
+      var start_time = new Date();
+      var thisObject = this;
+      $(".my_button_response_class").unbind('click');
+      $(".my_button_response_class").click(function(){
+        // when the user answers the question, add the question to the survey result
+        thisObject.surveyResult.addQuestion(qa.question, this.innerHTML, new Date() - start_time);
+        console.log(thisObject.surveyResult);
+        // Disable the button and indicate that we have a response
+        $('.my_button_response_class').prop('disabled', true);
+        thisObject.setToast(true, "Your response has been recorded");
+        setTimeout(function(){
+          thisObject.setToast(false, "");
+        }, 1500);
+        canDisplayQuestion = true;
+        thisObject.displayQuestion();
+      });
+    }
+  };
 
   // Randomly permutes the SurveyVideos 
   this.shuffleVideoSurveys = function(){
@@ -44,7 +78,6 @@ function SurveyManager(survey){
 
     // add the current video to the surveyResult
     this.surveyResult.startSurveyVideo(currentSurveyVideo.videoTitle);
-
     // show the modal
     $("#my_modal_title").text(currentSurveyVideo.videoTitle);
     $("#my_modal_body").text(currentSurveyVideo.preVideoPrompt);
@@ -61,6 +94,11 @@ function SurveyManager(survey){
       if(currentSurveyVideo.timedQA){
         thisObject.putQuestion(currentSurveyVideo.timedQA);
       }
+      thisObject.videoElement.onended = function(){
+        for(var i = 0; i < currentSurveyVideo.QAs.length; i++){
+          thisObject.putQuestion(currentSurveyVideo.QAs[i]);
+        }
+      };
     });
     this.surveyResult.endSurveyVideo();
     currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
@@ -80,27 +118,9 @@ function SurveyManager(survey){
   };
 
   this.putQuestion = function(qa){
-    $("#my_question_text").text(qa.question);
-    $("#my_response_row").empty();
-    var responseHTML = "";
-    for(var i = 0; i < qa.responses.length; i++){
-      responseHTML += "<button class='btn btn-primary my_button_response_class'>" + qa.responses[i]  + "</button>";
-    }
-    $("#my_response_row").html(responseHTML);
-    var start_time = new Date();
-    var thisObject = this;
-    $(".my_button_response_class").unbind('click');
-    $(".my_button_response_class").click(function(){
-      // when the user answers the question, add the question to the survey result
-      thisObject.surveyResult.addQuestion(qa.question, this.innerHTML, new Date() - start_time);
-      console.log(thisObject.surveyResult);
-      // Disable the button and indicate that we have a response
-      $('.my_button_response_class').prop('disabled', true);
-      thisObject.setToast(true, "Your response has been recorded");
-      setTimeout(function(){
-        thisObject.setToast(false, "");
-      }, 1500);
-    });
+    questionQueue.push(qa);
+    this.displayQuestion();
+    console.log(qa);
   };
 
   // Load the video for the given URL
