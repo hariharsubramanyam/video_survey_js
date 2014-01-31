@@ -27,9 +27,29 @@
         video = document.getElementById("myVidPlayer");
         div = document.getElementById("myDiv");
         var surVids = [];
-        surVids.push(new SurveyVideo("assets/Braking.mp4", [], "Braking", "Are you ready to play?", new QA("What's your favorite color?", ["Red", "Blue"])));
-        surVids.push(new SurveyVideo("assets/Backing_Up.mp4", [], "Backing Up", "Play second video?", null));
-        surveyManager = new SurveyManager(video, div, surVids);
+        var survey = {
+          "videoElement":video,
+          "questionDiv":div,
+          "surveyVideos":[
+            {
+              "videoTitle":"Braking",
+              "videoURL":"assets/Braking.mp4",
+              "preVideoPrompt":"Are you ready to play?",
+              "timedQA":{"question":"What is your favorite color?", "responses":["Red","Blue","Green"]},
+              "QAs":[
+                  {
+                    "question":"What is the first question",
+                    "responses":["Not this", "Or this"]
+                  },
+                  {
+                    "question":"What is the second question?",
+                    "responses":["This", "or", "This"]
+                  }
+                ]
+            }
+          ]
+        };
+        surveyManager = new SurveyManager(survey);
         $("#btnNext").click(function(){	
           surveyManager.displayNextVideo();
         });

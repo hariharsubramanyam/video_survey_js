@@ -3,19 +3,26 @@
  * questionDiv = div to show the question/answers in
  * surveyVideos = list of SurveyVideos which constitute this survey
  */
-function SurveyManager(videoElement, questionDiv, surveyVideos){
+function SurveyManager(survey){
   // The <video> element
-  this.videoElement = videoElement;
+  this.videoElement = survey["videoElement"];
 
   // The <div> which will contain the questions and the responses
-  this.questionDiv = questionDiv;
-  this.questionDiv.innerHTML = '<div class="container">' + '<div class="row"><h3>Question</h3></div>' +'<div class="row">' + "<p id='my_question_text'>" +  "</p>" + '</div>' + '<div class="row" id="my_response_row">'+  '</div>'+ '<div id="my_toast">' + '</div>' + '</div>';
+  this.questionDiv = survey["questionDiv"];
+  this.questionDiv.innerHTML = '<div class="container">' + '<div class="row"><h3>Question</h3></div>' +'<div class="row">' + "<p id='my_question_text'>" +  "</p>" + '</div>' + '<div class="row" id="my_response_row">'+  '</div>'+ '<div id="my_toast" >' + '</div>' + '</div>';
+
+  // We'll be accumulating the survey result as the user works through the survey
+  this.surveyResult = new SurveyResult();
 
   // The list of SurveyVideos	
-  this.surveyVideos = surveyVideos;
+  this.surveyVideos = [];
+  for(var i = 0; i < survey["surveyVideos"].length; i++){
+    this.surveyVideos.push(new SurveyVideo(survey["surveyVideos"][i]));
+  }
 
   // the current survey video
   var currentSurveyVideoIndex = 0;
+
 
   // Randomly permutes the SurveyVideos 
   this.shuffleVideoSurveys = function(){
@@ -29,28 +36,34 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
 
   // Displays the next video
   this.displayNextVideo = function(){
+    // stop the playing video
     this.videoElement.pause();
+
+    // figure out next cideo
     var currentSurveyVideo = this.surveyVideos[currentSurveyVideoIndex];
+
+    // add the current video to the surveyResult
+    this.surveyResult.startSurveyVideo(currentSurveyVideo.videoTitle);
+
+    // show the modal
     $("#my_modal_title").text(currentSurveyVideo.videoTitle);
     $("#my_modal_body").text(currentSurveyVideo.preVideoPrompt);
     $("#my_modal").modal();
+
+    // handle click event for the modal button
     var thisObject = this;
     $("#my_modal_button").unbind("click");
     $("#my_modal_button").click(function(){
-      var start_time = new Date();
-      thisObject.loadVideo(currentSurveyVideo.videoURL);	
+      // load next video
+      thisObject.loadVideo(currentSurveyVideo.videoURL);
       thisObject.videoElement.play();
+      // if there's a timed question, load it
       if(currentSurveyVideo.timedQA){
         thisObject.putQuestion(currentSurveyVideo.timedQA);
-        $(".my_button_response_class").unbind('click');
-        $(".my_button_response_class").click(function(){
-          console.log(new Date() - start_time);
-          $('.my_button_response_class').prop('disabled', true);
-          thisObject.setToast(true, "Your response has been recorded");
-        });
       }
-      currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
     });
+    this.surveyResult.endSurveyVideo();
+    currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
   };
 
   this.fillQuestionDiv = function(text){
@@ -59,13 +72,10 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
 
   this.setToast = function(isOn, text){
     if(isOn){
-      $("#my_toast").addClass("alert");
-      $("#my_toast").addClass("alert-success");
       $("#my_toast").html(text);
+      $("#my_toast").fadeIn();
     }else{
-      $("#my_toast").removeClass("alert");
-      $("#my_toast").removeClass("alert-success");
-      $("#my_toast").html("");
+      $("#my_toast").fadeOut(400, function(){$("#my_toast").html("");});
     }
   };
 
@@ -77,6 +87,20 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
       responseHTML += "<button class='btn btn-primary my_button_response_class'>" + qa.responses[i]  + "</button>";
     }
     $("#my_response_row").html(responseHTML);
+    var start_time = new Date();
+    var thisObject = this;
+    $(".my_button_response_class").unbind('click');
+    $(".my_button_response_class").click(function(){
+      // when the user answers the question, add the question to the survey result
+      thisObject.surveyResult.addQuestion(qa.question, this.innerHTML, new Date() - start_time);
+      console.log(thisObject.surveyResult);
+      // Disable the button and indicate that we have a response
+      $('.my_button_response_class').prop('disabled', true);
+      thisObject.setToast(true, "Your response has been recorded");
+      setTimeout(function(){
+        thisObject.setToast(false, "");
+      }, 1500);
+    });
   };
 
   // Load the video for the given URL
@@ -92,16 +116,50 @@ function SurveyManager(videoElement, questionDiv, surveyVideos){
   };
 
   $('body').append(this.getBootstrapModalHTML());
+
+  // hide the toast
+  $("#my_toast").fadeOut(1);
+  $("#my_toast").addClass("alert");
+  $("#my_toast").addClass("alert-success");
   this.shuffleVideoSurveys();
 }
 
+
 /*
- * question = the question text (ex. "What is your favorite color?")
- * responses = the possible responses to the question (ex. ["Red", "Blue", "Green"])
+ * Used to build up a JSON object cotnaining the results of a survey
  */
-function QA(question, responses){
-  this.question = question;
-  this.responses = responses;
+ /*
+ {
+  surveyVideos:[
+    {
+      videoName:"someName",
+      QAs:[
+        {question:"the question", response:"my response", responseTime:2.23}
+        {question:"the question", response:"my response", responseTime:2.23}
+        {question:"the question", response:"my response", responseTime:2.23}
+      ]
+    }
+  ]
+ }
+ */
+function SurveyResult(){
+  this.response = {};
+  this.response.surveyVideos = [];
+  this.currentSurveyVideo = {};
+  this.startSurveyVideo = function(surveyVideoName){
+    this.currentSurveyVideo = {"videoName":surveyVideoName};
+    this.currentSurveyVideo.QAs = [];
+  };
+  this.endSurveyVideo = function(){
+    this.response.surveyVideos.push(this.currentSurveyVideo);
+  };
+  this.addQuestion = function(question, response, responseTime){
+    this.currentSurveyVideo.QAs.push({
+      "question":question,
+      "response":response,
+      "responseTime":responseTime
+    });
+  };
 }
 
 /*
@@ -110,10 +168,25 @@ function QA(question, responses){
  * preVideoPrompt = the prompt text that will be displayed before the video begins (ex. "You will see a video of a bunch of colors and then asked a set of questions afterwards")
  * timedQA = the question to show while the video is playing (and should keep track of the time taken to answer the question) - if there isn't any timed question, then pass in null
  */
-function SurveyVideo(videoURL, QAs, videoTitle, preVideoPrompt, timedQA){
-  this.videoTitle = videoTitle;
-  this.videoURL = videoURL;
-  this.preVideoPrompt = preVideoPrompt;
-  this.QAs = QAs;
-  this.timedQA = timedQA;
+function SurveyVideo(survey_video){
+  this.videoTitle = survey_video["videoTitle"];
+  this.videoURL = survey_video["videoURL"];
+  this.preVideoPrompt = survey_video["preVideoPrompt"];
+  this.timedQA = new QA(survey_video["timedQA"]);
+  this.QAs = [];
+  for(var i = 0; i < survey_video["QAs"].length; i++){
+    this.QAs.push(new QA(survey_video["QAs"][i]));
+  }
+}
+
+/*
+ * question = the question text (ex. "What is your favorite color?")
+ * responses = the possible responses to the question (ex. ["Red", "Blue", "Green"])
+ */
+function QA(qa){
+  this.question = qa["question"];
+  this.responses = [];
+  for(var i = 0; i < qa["responses"].length; i++){
+    this.responses.push(qa["responses"][i]);
+  }
 }
