@@ -1,7 +1,5 @@
 /*
- * videoElement = the video element on the page which will display the videos
- * questionDiv = div to show the question/answers in
- * surveyVideos = list of SurveyVideos which constitute this survey
+ * survey
  */
 function SurveyManager(survey){
   // The <video> element
@@ -23,6 +21,8 @@ function SurveyManager(survey){
 
   // the current survey video
   var currentSurveyVideoIndex = 0;
+  var currentVideoEnded = true;
+  var remainingQuestions = 0;
 
   // the questions to display
   var questionQueue = [];
@@ -45,7 +45,6 @@ function SurveyManager(survey){
       $(".my_button_response_class").click(function(){
         // when the user answers the question, add the question to the survey result
         thisObject.surveyResult.addQuestion(qa.question, this.innerHTML, new Date() - start_time);
-        console.log(thisObject.surveyResult);
         // Disable the button and indicate that we have a response
         $('.my_button_response_class').prop('disabled', true);
         thisObject.setToast(true, "Your response has been recorded");
@@ -53,8 +52,11 @@ function SurveyManager(survey){
           thisObject.setToast(false, "");
         }, 1500);
         canDisplayQuestion = true;
+        remainingQuestions -= 1;
         thisObject.displayQuestion();
       });
+    }else if (currentVideoEnded && remainingQuestions === 0){
+      this.endVideoAndStartAnother();
     }
   };
 
@@ -83,6 +85,11 @@ function SurveyManager(survey){
     $("#my_modal_body").text(currentSurveyVideo.preVideoPrompt);
     $("#my_modal").modal();
 
+    currentVideoEnded = false;
+    remainingQuestions = currentSurveyVideo.QAs.length;
+    if(currentSurveyVideo.timedQA){
+      remainingQuestions += 1;
+    }
     // handle click event for the modal button
     var thisObject = this;
     $("#my_modal_button").unbind("click");
@@ -98,10 +105,22 @@ function SurveyManager(survey){
         for(var i = 0; i < currentSurveyVideo.QAs.length; i++){
           thisObject.putQuestion(currentSurveyVideo.QAs[i]);
         }
+        currentVideoEnded = true;
+        if(currentVideoEnded && remainingQuestions === 0){
+          thisObject.endVideoAndStartAnother();
+        }
       };
     });
+  };
+
+  this.endVideoAndStartAnother = function(){
     this.surveyResult.endSurveyVideo();
-    currentSurveyVideoIndex = (currentSurveyVideoIndex + 1)%thisObject.surveyVideos.length;
+    currentSurveyVideoIndex += 1;
+    if(currentSurveyVideoIndex < this.surveyVideos.length){
+      this.displayNextVideo();
+    }else{
+      console.log(this.surveyResult);
+    }
   };
 
   this.fillQuestionDiv = function(text){
@@ -120,7 +139,6 @@ function SurveyManager(survey){
   this.putQuestion = function(qa){
     questionQueue.push(qa);
     this.displayQuestion();
-    console.log(qa);
   };
 
   // Load the video for the given URL

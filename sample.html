@@ -7,9 +7,6 @@
   <body>	
     <div class="container">
       <div class="row">
-        <button id="btnNext" class="btn btn-success col-md-offset-3">Next!</button>
-      </div>
-      <div class="row">
         <video id="myVidPlayer" class="col-md-6">
           <source src="assets/Braking.mp4"></source>
         </video>
@@ -46,13 +43,27 @@
                     "responses":["This", "or", "This"]
                   }
                 ]
+            },
+            {
+              "videoTitle":"Backing Up",
+              "videoURL":"assets/Backing_Up.mp4",
+              "preVideoPrompt":"Now you're going to watch a backing up video?",
+              "timedQA":{"question":"So is it backing up?", "responses":["Yeah","No"]},
+              "QAs":[
+                  {
+                    "question":"Another question",
+                    "responses":["This is a question", "And so is this"]
+                  },
+                  {
+                    "question":"Yet another question",
+                    "responses":["Further", "Stuff"]
+                  }
+                ]
             }
           ]
         };
         surveyManager = new SurveyManager(survey);
-        $("#btnNext").click(function(){	
-          surveyManager.displayNextVideo();
-        });
+        surveyManager.displayNextVideo();
       });
     </script>
   </body>
