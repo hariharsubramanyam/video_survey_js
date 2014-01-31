@@ -60,16 +60,6 @@ function SurveyManager(survey){
     }
   };
 
-  // Randomly permutes the SurveyVideos 
-  this.shuffleVideoSurveys = function(){
-    for(var i = 0; i < this.surveyVideos.length; i++){
-      var tmp = this.surveyVideos[i];
-      var swapIndex = Math.floor(Math.random()*this.surveyVideos.length);
-      this.surveyVideos[i] = this.surveyVideos[swapIndex];
-      this.surveyVideos[swapIndex] = tmp;
-    }
-  };
-
   // Displays the next video
   this.displayNextVideo = function(){
     // stop the playing video
@@ -159,7 +149,6 @@ function SurveyManager(survey){
   $("#my_toast").fadeOut(1);
   $("#my_toast").addClass("alert");
   $("#my_toast").addClass("alert-success");
-  this.shuffleVideoSurveys();
 }
 
 
